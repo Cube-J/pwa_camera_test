@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+    <title>PWA Sample</title>
+    <link rel="manifest" href="./helloworld-pwa.json" />
+  </head>
+
+  <body>
+    <h1 style="font-size: 1.5em">Hello World for PWA</h1>
+    Loading...
+    <br />
+    <button>reget steam</button>
+    <video
+      src=""
+      muted="true"
+      playsinline="true"
+      style="width: 100vw; height: 100vh"
+    ></video>
+    <script src="eruda.js"></script>
+    <script class="init-eruda">
+      eruda.init();
+    </script>
+
+    <script>
+      const videoEl = document.querySelector("video");
+
+      const playVideo = async (videoEl, source, timeout) => {
+        return new Promise((rs, rj) => {
+          if (!videoEl) rj(new Error("Invalid video element."));
+          if (!source) rj(new Error("Invalid source."));
+          videoEl.onloadedmetadata = async () => {
+            videoEl.onloadedmetadata = null;
+            await videoEl.play();
+            rs(videoEl);
+          };
+          if (typeof source == "string" || source instanceof String) {
+            videoEl.src = source;
+          } else {
+            videoEl.srcObject = source;
+          }
+          if (timeout !== undefined) {
+            setTimeout(
+              () => rj(new Error("Failed to play video. Timeout.")),
+              timeout
+            );
+          }
+        });
+      };
+
+      const logInfo = () => {
+        console.log("----------------------");
+        console.log("mediaStream = ");
+        console.log(mediaStream);
+        if (mediaStream) {
+          console.log(`mediaStream.active = `);
+          console.log(mediaStream.active);
+          const track = mediaStream.getTracks()[0];
+          console.log(`track = `);
+          console.log(track);
+          console.log(`track.enabled = `);
+          console.log(track.enabled);
+          console.log(`track.readyState = `);
+          console.log(track.readyState);
+          console.log(`track.getSettings = `);
+          console.log(track.getSettings());
+        }
+      };
+
+      let mediaStream;
+      (async function () {
+        try {
+          mediaStream = await navigator.mediaDevices.getUserMedia({
+            video: {
+                facingMode: 'environment'
+            }
+          });
+          await playVideo(videoEl, mediaStream, 4000);
+        } catch (ex) {
+          let errMsg = ex.message || ex;
+          console.error(errMsg);
+          alert(errMsg);
+        } finally {
+          logInfo();
+        }
+      })();
+
+      if ("serviceWorker" in navigator) {
+        navigator.serviceWorker.register("./service-worker.js");
+      }
+
+      document.querySelector("button").onclick = async () => {
+        try {
+          mediaStream = await navigator.mediaDevices.getUserMedia({
+            video: {
+                facingMode: 'environment'
+            }
+          });
+          await playVideo(videoEl, mediaStream, 4000);
+        } catch (ex) {
+          let errMsg = ex.message || ex;
+          console.error(errMsg);
+          alert(errMsg);
+        } finally {
+          logInfo();
+        }
+      };
+    </script>
+  </body>
+</html>
